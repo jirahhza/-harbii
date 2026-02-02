@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, ChannelType } = require("discord.js");
 const { joinVoiceChannel } = require("@discordjs/voice");
 
 const client = new Client({
@@ -8,14 +8,13 @@ const client = new Client({
   ]
 });
 
-client.once("ready", async () => {
+client.once("clientReady", async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   const channelId = "1456846219061100596";
-
   const channel = await client.channels.fetch(channelId);
 
-  if (!channel || channel.type !== 2) {
+  if (!channel || channel.type !== ChannelType.GuildVoice) {
     console.log("Voice channel not found or not a voice channel");
     return;
   }
