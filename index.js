@@ -8,14 +8,15 @@ const client = new Client({
   ]
 });
 
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}`);
 
   const channelId = "1456846219061100596";
-  const channel = client.channels.cache.get(channelId);
 
-  if (!channel) {
-    console.log("Voice channel not found");
+  const channel = await client.channels.fetch(channelId);
+
+  if (!channel || channel.type !== 2) {
+    console.log("Voice channel not found or not a voice channel");
     return;
   }
 
