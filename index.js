@@ -18,7 +18,7 @@ for (const command of commands) {
   client.commands.set(command.data.name, command);
 }
 
-client.once("clientReady", () => {
+client.once('clientReady', () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
@@ -37,3 +37,4 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.login(process.env.TOKEN);
+
