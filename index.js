@@ -1,66 +1,39 @@
-const { Client, GatewayIntentBits, Collection, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, Events } = require("discord.js");
+const { Client, GatewayIntentBits, Collection, Events } = require("discord.js");
 const mongoose = require("mongoose");
-const config = require("./config.json");
-const fs = require("fs");
+require("dotenv").config();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
+  intents: [GatewayIntentBits.Guilds]
 });
 
 client.commands = new Collection();
 
-mongoose.connect(config.mongoURI)
-  .then(() => console.log("MongoDB Connected"));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
-const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+const commands = require("./commands.js");
 
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
+for (const command of commands) {
   client.commands.set(command.data.name, command);
 }
 
+client.once("clientReady", () => {
+  console.log(`✅ Logged in as ${client.user.tag}`);
+});
+
 client.on(Events.InteractionCreate, async interaction => {
-  if (interaction.isChatInputCommand()) {
-    const command = client.commands.get(interaction.commandName);
-    if (command) await command.execute(interaction);
-  }
+  if (!interaction.isChatInputCommand()) return;
 
-  if (interaction.isButton()) {
-    const User = require("./models/User");
-    let user = await User.findOne({ userId: interaction.user.id });
+  const command = client.commands.get(interaction.commandName);
+  if (!command) return;
 
-    if (!user) {
-      user = await User.create({ userId: interaction.user.id });
-    }
-
-    if (interaction.customId === "login") {
-      if (user.isActive) return interaction.reply({ content: "❌ أنت مسجل دخول بالفعل", ephemeral: true });
-
-      user.isActive = true;
-      user.loginTime = new Date();
-      user.sessions += 1;
-      await user.save();
-
-      return interaction.reply({ content: "✅ تم تسجيل الدخول", ephemeral: true });
-    }
-
-    if (interaction.customId === "logout") {
-      if (!user.isActive) return interaction.reply({ content: "❌ أنت لست مسجل دخول", ephemeral: true });
-
-      const diff = Date.now() - user.loginTime;
-      const minutes = Math.floor(diff / 60000);
-
-      user.totalTime += diff;
-      user.points += minutes;
-      user.isActive = false;
-      user.loginTime = null;
-      await user.save();
-
-      return interaction.reply({ content: `✅ تم تسجيل الخروج\n⏱ المدة: ${minutes} دقيقة`, ephemeral: true });
-    }
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({ content: "❌ حدث خطأ", ephemeral: true });
   }
 });
 
-require("./deploy-commands.js");
-
-client.login(config.token);
+client.login(process.env.TOKEN);
