@@ -61,4 +61,6 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
+require("./deploy-commands.js");
+
 client.login(config.token);
