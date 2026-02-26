@@ -1,15 +1,13 @@
 {
-  "name": "censorship-manager",
+  "name": "discord-banner-bot",
   "version": "1.0.0",
+  "description": "بوت ديسكورد يضيف بنر مخصص أسفل الصور",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
-    "deploy": "node deploy-commands.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "discord.js": "^14.14.1",
-    "mongoose": "^8.0.0",
-    "dotenv": "^16.4.5"
+    "discord.js": "^14.15.1",
+    "jimp": "^0.22.10"
   }
 }
