@@ -14,7 +14,7 @@ const client = new Client({
 const BANNER_PATH = path.join(__dirname, 'banner.png');
 
 // ضع هنا ID الروم الذي تريد أن يعمل البوت فيه
-const ALLOWED_CHANNEL_ID = '1349906852909027399';
+const ALLOWED_CHANNEL_ID = '1476303113060089989';
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
@@ -44,3 +44,4 @@ client.on('messageCreate', async (message) => {
 
 // تسجيل الدخول
 client.login(process.env.DISCORD_TOKEN);
+
