@@ -1,5 +1,4 @@
 const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
-const Jimp = require('jimp');
 const path = require('path');
 
 const client = new Client({
@@ -11,6 +10,7 @@ const client = new Client({
     ]
 });
 
+// مسار البنر
 const BANNER_PATH = path.join(__dirname, 'banner.png');
 
 client.on('ready', () => {
@@ -20,35 +20,21 @@ client.on('ready', () => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
+    // إذا كان هناك صورة مرفقة في الرسالة
     if (message.attachments.size > 0) {
         for (const attachment of message.attachments.values()) {
             if (attachment.contentType && attachment.contentType.startsWith('image')) {
                 try {
-                    // قراءة صورة المستخدم
-                    const userImage = await Jimp.read(attachment.url);
-                    const width = userImage.getWidth();
-                    const height = userImage.getHeight();
-
-                    // قراءة صورة البنر
-                    const bannerImage = await Jimp.read(BANNER_PATH);
-                    bannerImage.resize(width, Jimp.AUTO); // تعديل عرض البنر ليطابق الصورة
-                    const bannerHeight = bannerImage.getHeight();
-
-                    // البنر في صورة جديدة
-                    finalImage.composite(bannerImage, 0, height); // البنر 
-
-                    // إرسال الصورة النهائية
-                    const buffer = await finalImage.getBufferAsync(Jimp.MIME_PNG);
-                    const attachmentWithBanner = new AttachmentBuilder(buffer, { name: 'with_banner.png' });
-                    await message.channel.send({ files: [attachmentWithBanner] });
-
+                    // إرسال البنر فقط بدون دمج
+                    const bannerAttachment = new AttachmentBuilder(BANNER_PATH, { name: 'banner.png' });
+                    await message.channel.send({ files: [bannerAttachment] });
                 } catch (err) {
-                    console.error('Error processing image:', err);
+                    console.error('Error sending banner:', err);
                 }
             }
         }
     }
 });
 
+// تسجيل الدخول باستخدام متغير البيئة
 client.login(process.env.DISCORD_TOKEN);
-
