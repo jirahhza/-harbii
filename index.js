@@ -34,10 +34,8 @@ client.on('messageCreate', async (message) => {
                     bannerImage.resize(width, Jimp.AUTO); // تعديل عرض البنر ليطابق الصورة
                     const bannerHeight = bannerImage.getHeight();
 
-                    // دمج الصورة + البنر في صورة جديدة
-                    const finalImage = new Jimp(width, height + bannerHeight);
-                    finalImage.composite(userImage, 0, 0); // الصورة الأصلية في الأعلى
-                    finalImage.composite(bannerImage, 0, height); // البنر أسفلها
+                    // البنر في صورة جديدة
+                    finalImage.composite(bannerImage, 0, height); // البنر 
 
                     // إرسال الصورة النهائية
                     const buffer = await finalImage.getBufferAsync(Jimp.MIME_PNG);
@@ -53,3 +51,4 @@ client.on('messageCreate', async (message) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
