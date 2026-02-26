@@ -1,40 +1,53 @@
-const { Client, GatewayIntentBits, Collection, Events } = require("discord.js");
-const mongoose = require("mongoose");
-require("dotenv").config();
+const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
+const Jimp = require('jimp');
+const path = require('path');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.DirectMessages
+    ]
 });
 
-client.commands = new Collection();
+// مسار صورة البنر
+const BANNER_PATH = path.join(__dirname, 'banner.png');
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
-
-const commands = require("./commands.js");
-
-for (const command of commands) {
-  client.commands.set(command.data.name, command);
-}
-
-client.once('clientReady', () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+client.on('ready', () => {
+    console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
 
-  const command = client.commands.get(interaction.commandName);
-  if (!command) return;
+    if (message.attachments.size > 0) {
+        for (const attachment of message.attachments.values()) {
+            if (attachment.contentType && attachment.contentType.startsWith('image')) {
+                try {
+                    const userImage = await Jimp.read(attachment.url);
+                    const width = userImage.getWidth();
+                    const height = userImage.getHeight();
 
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({ content: "❌ حدث خطأ", ephemeral: true });
-  }
+                    const bannerImage = await Jimp.read(BANNER_PATH);
+                    bannerImage.resize(width, Jimp.AUTO);
+                    const bannerHeight = bannerImage.getHeight();
+
+                    const finalImage = new Jimp(width, height + bannerHeight);
+                    finalImage.composite(userImage, 0, 0);
+                    finalImage.composite(bannerImage, 0, height);
+
+                    const buffer = await finalImage.getBufferAsync(Jimp.MIME_PNG);
+                    const attachmentWithBanner = new AttachmentBuilder(buffer, { name: 'with_banner.png' });
+
+                    await message.channel.send({ files: [attachmentWithBanner] });
+
+                } catch (err) {
+                    console.error('Error processing image:', err);
+                }
+            }
+        }
+    }
 });
 
-client.login(process.env.TOKEN);
-
+client.login(process.env.DISCORD_TOKEN);
